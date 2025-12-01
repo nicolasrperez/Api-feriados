@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feriados por País</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body {
+    transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
+    min-height: 100vh;
+    margin: 0;
+  }
+  body.loaded {
+    background-image: url('https://flagcdn.com/w1600/un.jpg');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    color: white;
+    text-shadow: 1px 1px 2px #000;
+  }
+  .bg-overlay {
+    background: rgba(0,0,0,0.7);
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  .card {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+  }
+</style>
+</head>
+<body class="loaded">
+  <div class="bg-overlay text-center" id="contenido">
+    <div class="container">
+      <h1>Feriados por País</h1>
+      <a href="index.html" class="btn btn-light mb-3" id="btnInicio">Volver al inicio</a>
+
+      <div class="mb-3">
+        <label for="pais" class="form-label">Selecciona un país:</label>
+        <select id="pais" class="form-select text-center w-auto mx-auto">
+          <option>Cargando países...</option>
+        </select>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card p-3">
+            <h3>Feriados de este mes</h3>
+            <ul id="lista-mes" class="list-unstyled"></ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-3">
+            <h3>Todos los feriados del año</h3>
+            <ul id="lista-todos" class="list-unstyled"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+var paisSelect = document.getElementById('pais');
+var listaTodos = document.getElementById('lista-todos');
+var listaMes = document.getElementById('lista-mes');
+var anioActual = new Date().getFullYear();
+var mesActual = new Date().getMonth() + 1; // 1 para Enero, 12 para Diciembre
+
+// --- 1. Cargar lista de países ---
+function cargarPaises() {
+  // Petición a la API para obtener la lista de países
+  fetch('https://date.nager.at/api/v3/AvailableCountries')
+    .then(function(res) { return res.json();})
+    .then(function(paises) {
+      // 1a. Construir las opciones del selector
+      var opcionesHTML = '<option value="">-- Elegir país --</option>';
+      for (var i = 0; i < paises.length; i++) {
+          var p = paises[i];
+          opcionesHTML += '<option value="' + p.countryCode + '">' + p.name + '</option>';
+      }
+      paisSelect.innerHTML = opcionesHTML;
+
+      // 1b. Mostrar mensajes iniciales
+      listaTodos.innerHTML = "<li>Selecciona un país para ver los feriados</li>";
+      listaMes.innerHTML = "<li>Selecciona un país para ver los feriados</li>";
+    })
+    .catch(function(e) {
+      paisSelect.innerHTML = '<option>Error al cargar países</option>';
+    });
+}
+
+// --- 2. Manejar la selección de país ---
+paisSelect.addEventListener('change', function() {
+  var codigo = paisSelect.value;
+  if (!codigo) return; // Si no se selecciona nada, no hacer nada
+
+  // 2a. Mostrar el fondo de bandera y mensaje de carga
+  document.body.style.backgroundImage = 'url("https://flagcdn.com/w1600/' + codigo.toLowerCase() + '.jpg")';
+  listaTodos.innerHTML = "<li>Cargando...</li>";
+  listaMes.innerHTML = "<li>Cargando...</li>";
+
+  // 2b. Petición a la API para obtener los feriados del país
+  fetch('https://date.nager.at/api/v3/PublicHolidays/' + anioActual + '/' + codigo)
+    .then(function(res) {
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    })
+    .then(function(data) {
+      var feriadosTodosHTML = "";
+      var feriadosMesHTML = "";
+      var feriadosMesEncontrados = 0;
+
+      // 2c. Recorrer la lista de feriados
+      for (var i = 0; i < data.length; i++) {
+          var f = data[i];
+          
+          // Feriados del año (Todos)
+          feriadosTodosHTML += '<li><strong>' + f.date + '</strong> — ' + f.localName + '</li>';
+
+          // Feriados del mes actual (Filtrar)
+          var fecha = new Date(f.date);
+          if (fecha.getMonth() + 1 === mesActual) {
+              feriadosMesHTML += '<li><strong>' + f.date + '</strong> — ' + f.localName + '</li>';
+              feriadosMesEncontrados++;
+          }
+      }
+
+      // 2d. Mostrar resultados
+      listaTodos.innerHTML = feriadosTodosHTML;
+
+      if (feriadosMesEncontrados > 0) {
+          listaMes.innerHTML = feriadosMesHTML;
+      } else {
+          listaMes.innerHTML = "<li>No hay feriados este mes</li>";
+      }
+    })
+    .catch(function(e) {
+      listaTodos.innerHTML = "<li>Error al obtener feriados.</li>";
+      listaMes.innerHTML = "<li>Error al obtener feriados.</li>";
+    });
+});
+
+// Iniciar la carga de países al abrir la página
+cargarPaises();
+</script>
+</body>
+</html>
