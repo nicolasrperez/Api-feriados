@@ -2,7 +2,7 @@ var selectorPais = document.getElementById('pais');
 var listaTodos = document.getElementById('lista-todos');
 var listaMes = document.getElementById('lista-mes');
 var esteAnio = new Date().getFullYear();
-var esteMes = new Date().getMonth() + 1; //mes actual predeterminado
+var esteMes = new Date().getMonth() + 1; 
 
 function actualizarLista(elementoUL, feriados, mensajeVacio) {
     while (elementoUL.firstChild) {
@@ -24,7 +24,7 @@ function actualizarLista(elementoUL, feriados, mensajeVacio) {
         strong.textContent = f.date; 
         
         li.appendChild(strong);
-        li.appendChild(document.createTextNode(' — ' + f.localName)); // Nombre del feriado
+        li.appendChild(document.createTextNode(' — ' + f.localName)); 
 
         elementoUL.appendChild(li);
     }
@@ -38,18 +38,18 @@ function cargarPaises() {
             return res.json();
         })
         .then(function(paises) {
-            // Limpiar el select
+        
             while (selectorPais.firstChild) {
                 selectorPais.removeChild(selectorPais.firstChild);
             }
             
-            // Opción inicial
+        
             var opcionVacia = document.createElement('option');
             opcionVacia.value = "";
             opcionVacia.textContent = "-- Elegir país --";
             selectorPais.appendChild(opcionVacia);
 
-            // Opciones de países
+           
             for (var i = 0; i < paises.length; i++) {
                 var p = paises[i];
                 var opcion = document.createElement('option');
@@ -58,7 +58,7 @@ function cargarPaises() {
                 selectorPais.appendChild(opcion);
             }
 
-            // Mensajes iniciales
+          
             actualizarLista(listaTodos, [], "Selecciona un país para ver los feriados");
             actualizarLista(listaMes, [], "Selecciona un país para ver los feriados");
         })
@@ -69,7 +69,7 @@ function cargarPaises() {
         });
 }
 
-// cargar feriados cuando se selecciona un país
+
 function cargarFeriadosPais() {
     var codigo = selectorPais.value;
     
@@ -80,14 +80,14 @@ function cargarFeriadosPais() {
         return;
     } 
 
-    // Poner la bandera
+  
     document.body.style.backgroundImage = 'url("https://flagcdn.com/w1600/' + codigo.toLowerCase() + '.jpg")';
 
-    // Mostrar mensaje de carga
+
     actualizarLista(listaTodos, [], "Cargando...");
     actualizarLista(listaMes, [], "Cargando...");
 
-    // Petición de feriados
+
     fetch('https://date.nager.at/api/v3/PublicHolidays/' + esteAnio + '/' + codigo)
         .then(function(res) {
             if (!res.ok) throw new Error("Error");
@@ -96,18 +96,18 @@ function cargarFeriadosPais() {
         .then(function(feriadosAnuales) {
             var feriadosDelMes = [];
             
-            // Recorre lista de feriados para filtrar los del mes actual
+            
             for (var i = 0; i < feriadosAnuales.length; i++) {
                 var f = feriadosAnuales[i];
                 var fecha = new Date(f.date);
                 
-                // Si el mes coincide, lo agregamos a la lista del mes
+               
                 if (fecha.getMonth() + 1 === esteMes) {
                     feriadosDelMes.push(f);
                 }
             }
 
-            // Mostrar resultados
+         
             actualizarLista(listaTodos, feriadosAnuales, "No hay feriados este año.");
             actualizarLista(listaMes, feriadosDelMes, "No hay feriados este mes.");
 
@@ -118,6 +118,6 @@ function cargarFeriadosPais() {
         });
 }
 
-// INICIO
+
 cargarPaises();
 selectorPais.addEventListener('change', cargarFeriadosPais);
