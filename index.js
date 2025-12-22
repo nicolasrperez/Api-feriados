@@ -10,7 +10,7 @@ function llenarSelector() {
         opcion.textContent = nombresMeses[i];
         selectorMes.appendChild(opcion);
     }
-    selectorMes.value = new Date().getMonth() + 1; // Seleccionar el mes actual
+    selectorMes.value = new Date().getMonth() + 1; 
 }
 
 function mostrarFeriadosGlobales(feriados) {
@@ -25,7 +25,7 @@ function mostrarFeriadosGlobales(feriados) {
         return;
     }
     
-    //tarjetas
+    
     for (var i = 0; i < feriados.length; i++) {
         var f = feriados[i];
         
@@ -46,7 +46,7 @@ function mostrarFeriadosGlobales(feriados) {
         var pCountry = document.createElement('p');
         pCountry.textContent = f.country;
 
-        // juntar y añadir
+       
         cardDiv.appendChild(h5);
         cardDiv.appendChild(pDate);
         cardDiv.appendChild(pCountry);
@@ -64,7 +64,7 @@ function cargarGlobales() {
     if (pCarga) pCarga.textContent = "Cargando feriados...";
 
 
-    //Pedir la lista de todos los países
+    
     fetch('https://date.nager.at/api/v3/AvailableCountries')
         .then(function(res) {
             if (!res.ok) throw new Error("Error al obtener países.");
@@ -72,7 +72,7 @@ function cargarGlobales() {
         })
         .then(function(paises) {
             
-            //Crear todas las peticiones para feriados
+            
             var promesas = [];
             for (var i = 0; i < paises.length; i++) {
                 var pais = paises[i];
@@ -85,7 +85,7 @@ function cargarGlobales() {
                     .then(function(data) {
                         var feriadosDelMes = [];
                         
-                        // Filtrar solo los feriados del mes
+                      
                         for (var j = 0; j < data.length; j++) {
                             var f = data[j];
                             var fecha = new Date(f.date);
@@ -111,12 +111,12 @@ function cargarGlobales() {
 
         .then(function(resultados) {
             var listaFinal = [];
-            // Juntar todos los resultados en una sola lista
+            
             for (var i = 0; i < resultados.length; i++) {
                 listaFinal = listaFinal.concat(resultados[i]);
             }
 
-            // Ordenar por fecha 
+            
             listaFinal.sort(function(a, b) {
                 return new Date(a.date) - new Date(b.date);
             });
@@ -124,7 +124,7 @@ function cargarGlobales() {
             mostrarFeriadosGlobales(listaFinal); 
         })
         .catch(function(error) {
-            // Mostrar error
+    
             mostrarFeriadosGlobales([]); 
             var pError = divResultados.querySelector('p');
             if (pError) pError.textContent = "Error al cargar feriados. Inténtalo de nuevo.";
